@@ -1,0 +1,43 @@
+# Default config for a single server
+enabled: true
+snapshotDateFormat: '%Y%m%d%H%M%S'
+cleanSnapshotsAfterDays: 3    # 0 to disable snapshot cleaning
+source:
+  location: ssh # ssh, local
+  ssh:
+    address: server.example.com # or IP address
+    port: 22
+    user: root
+    key: ~/.ssh/id_rsa
+destination:
+  location: local # local, ssh
+  path: /mnt/backups
+  ssh:
+    address: server.example.com # or IP address
+    port: 22
+    user: root
+    key: ~/.ssh/id_rsa
+backup:
+  files:
+    common:
+      - /etc/
+      #- /usr/local/bin/
+      #- /root/
+      #- /home/
+      #- /var/log/
+      #- /var/spool/cron/
+    extra: []
+    exclude:
+      - lost+found
+      - .Trash-1000
+  scripts:
+    dpkg: {script: 'dpkg -l | gzip', output: 'dpkg.gz', enabled: true}
+    #postgres: {script: 'sudo -u postgres pg_dump jira | gzip', output: 'jira.sql.gz', enabled: true}
+  mysql:
+    enabled: false
+    host: 127.0.0.1
+    user: root
+    dbs: '*'
+    excludeDbs:
+      - information_schema
+      - performance_schema
