@@ -3,7 +3,7 @@ enabled: true
 snapshotDateFormat: '%Y%m%d%H%M%S'
 cleanSnapshotsAfterDays: 3    # 0 to disable snapshot cleaning
 source:
-  location: ssh # ssh, local
+  location: local # ssh, local
   ssh:
     address: server.example.com # or IP address
     port: 22

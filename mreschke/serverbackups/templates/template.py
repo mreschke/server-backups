@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 # Import mReschke Server Backup Scripts
-from mreschke.serverbackups.cli import *
+from mreschke.serverbackups import cli
 
 # Backup servers defined in /etc/mreschke/serverbackups configurations
 # =============================================================================
-log("Running server backups from YAML configs")
+cli.log("Running server backups from YAML configs")
 
 defaultsYaml = """
 ---
@@ -64,7 +64,7 @@ serversYaml = """
 """
 try:
 
-    backupservers()     # Use default /etc/mreschke/serverbackups config path
+    cli.backupservers()     # Use default /etc/mreschke/serverbackups config path
     #backupservers('/etc/mreschke/serverbackups2') # Use custom config path
     #backupservers(servers=serversYaml) # Inline YAML with NO defaults
     #backupservers(servers=serversYaml, defaults=defaultYaml) # Inline YAML with defaults
@@ -73,17 +73,13 @@ except KeyboardInterrupt:
     print("KeyboardInterrupt has been caught.")
 
 
-
 # Custom backupsYour custom backups here
 # =============================================================================
-if not allowcustom(): done(); exit()
-log("Running custom backups from backups.py")
-
+if not cli.allowcustom(): cli.done(); exit()
+cli.log("Running custom backups from backups.py")
 
 
 # Run mreschke.serverbackups package
 # =============================================================================
-done()
-
-
+cli.done()
 

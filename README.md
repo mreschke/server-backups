@@ -1,4 +1,55 @@
 # server-backups
+
+
+
+# CLI API FIRST - What I Want
+
+from mreschke.serverbackups.backupserver import BackupServer
+
+## From Dictionary
+from mreschke.serverbackups import factory
+defaults = factory.defaults
+servers = {
+    'localhost': {
+        'enabled': True,
+        'destination': {
+            'path': '~/Backups'
+        },
+    }
+}
+backups = factory.from_dict(servers, defaults)
+backups.run()
+
+
+## From Folder
+from mreschke.serverbackups import factory
+backups = factory.from_path('/etc/mreschke/serverbackups')
+backups.run()
+
+
+## From CLI Script as Dictionary
+from mreschke.serverbackups import cli, factory
+defaults = factory.defaults
+servers = {
+    'localhost': {
+        'enabled': True,
+        'destination': {
+            'path': '~/Backups'
+        },
+    }
+}
+backups = factory.from_dict(servers, defaults)
+backups.run
+
+cli.handle()
+
+
+
+
+
+
+
+
 Server Backup Python Scripts and Libraries
 
 

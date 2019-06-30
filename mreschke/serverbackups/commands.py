@@ -3,7 +3,6 @@ import click
 from shutil import copyfile
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
-
 @click.group(context_settings=CONTEXT_SETTINGS)
 def cli():
     """
@@ -14,14 +13,15 @@ def cli():
     """
     pass
 
+
 @cli.command()
 @click.option('-f', '--filename', default='backups.py', show_default=True)
 def init(filename):
-    """Initialize a new new backups.py in the current folder"""
+    """Initialize a new backups.py in the current folder"""
 
     #if os.geteuid() != 0: exit('Init must be run as root')
 
-    template = os.path.dirname(os.path.realpath(__file__)) + '/' + 'template.py'
+    template = os.path.dirname(os.path.realpath(__file__)) + '/templates/' + 'template.py'
     #template_config = os.path.dirname(os.path.realpath(__file__)) + '/' + 'template.yml'
     path = os.getcwd()
     file = path + '/' + filename
@@ -42,8 +42,7 @@ def init(filename):
     else:
         exit("Cancelled, bye.")
 
+
 # Initiate cli
 if __name__ == '__main__':
     cli()
-
-

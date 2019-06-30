@@ -6,11 +6,11 @@ import click
 from mreschke.serverbackups.backupserver import BackupServer, dd, dump
 
 # Exit if not running as root
-#if os.geteuid() != 0: exit('This script must be run as root')
+# if os.geteuid() != 0: exit('This script must be run as root')
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS)
-def done():
+def handle():
     """
     \b
     mreschke.serverbackups
@@ -20,8 +20,8 @@ def done():
     pass
 
 
-@done.command()
-#@click.option('-a', '--all', default='backups.py', show_default=True)
+@handle.command()
+# @click.option('-a', '--all', default='backups.py', show_default=True)
 @click.option('--all', is_flag=True, help="Run all backups (both config.yml and custom code)")
 @click.option('--custom', is_flag=True, help="Run only custom backup code")
 @click.option('--servers', is_flag=True, help="Run entire config.yml only, no custom code")
@@ -31,25 +31,24 @@ def run(all, custom, servers, server, cluster):
     """Run backups"""
 
 
-def backupservers(config_path='/etc/mreschke/serverbackups', servers='', defaults=''):
+def backupservers(config_path='/etc/mreschke/serverbackups', servers=None, defaults=None):
     """Run the main BackupServer class from the server config.yml and config.d files"""
 
     # Only run with proper cli flags
     if not any(x in ['--all', '--servers', '--server', '--cluster'] for x in sys.argv): return
 
-    log("Running server backups from YAML configs")
+    log("Running server backups")
 
     if servers:
-        # Passing in a YAML string of servers
-        log("Backups defined as inline YAML string", 1)
-        servers = yaml.load(servers)
+        # Passing in a dictionary of servers
+        log("Backups defined as inline dictionary", 1)
         if not defaults:
-            log("No defaults YAML passed inline, using builtin defaults", 1)
+            log("No defaults dictionary passed inline, using builtin defaults", 1)
             defaults_file = os.path.dirname(os.path.realpath(__file__)) + '/templates/' + 'defaults.yml'
             with io.open(defaults_file, 'r') as stream:
-                defaults = yaml.load(stream)
+                defaults = yaml.load(stream, Loader=yaml.SafeLoader)
         else:
-            log("Defaults defined as inline YAML string", 1)
+            log("Defaults defined as inline dictionary string", 1)
             defaults = yaml.load(defaults)
     else:
         # Using config directory
@@ -78,7 +77,7 @@ def backupservers(config_path='/etc/mreschke/serverbackups', servers='', default
         log(f"=== Running servers in cluster '{cluster}' defined in {configd_path}/*", 1)
 
     else:
-        log(f"Running all servers defined in YAML", 1)
+        log(f"Running all servers defined in config", 1)
         for server, options in servers.items():
             BackupServer(server, options, defaults).run()
 
@@ -88,7 +87,7 @@ def allowcustom():
     return any(x in ['--custom', '--all'] for x in sys.argv)
 
 
-def log(log, indent = 0):
+def log(log, indent=0):
     """Log string to console with indentation and colors"""
     if indent == 0:
         click.secho("\n### " + log + " ###", fg='green')
@@ -101,7 +100,6 @@ def log(log, indent = 0):
     elif indent >= 4:
         click.secho("\n--------- " + log + " -------", fg='bright_magenta')
 
+
 # Explicit exports
-__all__ = ['done', 'allowcustom', 'backupservers', 'log', 'dump', 'dd']
-
-
+__all__ = ['handle', 'allowcustom', 'backupservers', 'log', 'dump', 'dd']

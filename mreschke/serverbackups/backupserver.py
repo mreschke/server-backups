@@ -1,10 +1,11 @@
 import os
-import sh
+#import sh
 import click
 import subprocess
 from glob import glob
 from prettyprinter import cpprint
 from datetime import datetime, timedelta
+
 
 class BackupServer:
     """Backup a single server defined as a dictionary of options"""
@@ -12,11 +13,12 @@ class BackupServer:
     __author__ = "Matthew Reschke <mail@mreschke.com>"
     __license__ = "MIT"
 
-    def __init__(self, server, options, defaults):
+    def __init__(self, server, options, defaults=None):
         """Initialize backup class"""
 
         # Merge and replace defaults and options
         options = self._merge_defaults(options, defaults)
+        dd(options)
 
         # Set instance variables
         self.options = options
@@ -24,20 +26,11 @@ class BackupServer:
         self.snapshot = datetime.today().strftime(options['snapshotDateFormat'])
         self.today = datetime.today().strftime("%Y%m%d")
 
-        #self.source = options['source']
-        #self.dest = options['destination']
-        #self.files = options['backup']['files']
-        #self.scripts = options['backup']['scripts']
-        #self.mysql = options['backup']['mysql']
-
-        # Validate
-        #if self.serverLocation not in ['local', 'remote']: exit('ERROR: server location must be local or remote')
-
     def run(self):
         """Run backups"""
 
         # Do not run if backup is disabled
-        if 'enabled' in self.options.keys() and self.options['enabled'] == False:
+        if 'enabled' in self.options.keys() and self.options['enabled'] is False:
             self._log(f"Server '{self.server}' configuration DISABLED, skipping server")
             return
 
@@ -58,7 +51,6 @@ class BackupServer:
 
         # Cleanup old snapshots
         self._cleanup()
-
 
     def _backup_files(self):
         """
@@ -85,7 +77,7 @@ class BackupServer:
             elif src_location == 'ssh':
                 src_ssh = self.options['destination']['ssh']
                 src.append(src_ssh['user'] + '@' + src_ssh['address'] + ':' + file)
-        src = ' '.join(src) # Array to string rsync
+        src = ' '.join(src)  # Array to string rsync
 
         # Get destination string
         dest = self.options['destination']['path']
@@ -146,7 +138,7 @@ class BackupServer:
         src = self.backupRoot + '/' + self.server + '/snapshots/' + self.snapshot
         for (name, script) in self.scripts.items():
             # Do not run disabled scripts
-            if 'enabled' in script.keys() and script['enabled'] == False: continue
+            if 'enabled' in script.keys() and script['enabled'] is False: continue
 
             cmd = script['script']
             output = script['output']
@@ -161,10 +153,10 @@ class BackupServer:
         """Backup mysql databases and tables"""
 
         # Ignore disabled mysql entries
-        if 'enabled' in self.mysql.keys() and self.mysql['enabled'] == False: return
+        if 'enabled' in self.mysql.keys() and self.mysql['enabled'] is False: return
 
         dest = self.backupRoot + '/' + self.server + '/snapshots/' + self.snapshot + '/mysqldump'
-        host = self.mysql['host']
+        #host = self.mysql['host']
         user = self.mysql['user']
         password = self.mysql['pass']
         dbs = self.mysql['dbs']
@@ -176,8 +168,8 @@ class BackupServer:
                 # Convert * into dictionary of all tables on system
                 cmd = "mysql -u{} -p'{}' -Bse 'show databases'".format(user, password)
                 databases = self.execute(cmd, [])
-                databases = set(databases) - set(excludeDbs) # Also dedups, now a set not a list
-                dbs = [];
+                databases = set(databases) - set(excludeDbs)  # Also dedups, now a set not a list
+                dbs = []
                 for database in databases:
                     dbs.append({'name': database, 'tables': '*'})
             else:
@@ -218,7 +210,7 @@ class BackupServer:
         dest = self.options['destination']
         if dest['location'] == 'local':
             base = dest['path'] + '/' + self.server
-            snapshot = base +'/snapshots/' + self.snapshot
+            snapshot = base + '/snapshots/' + self.snapshot
             if not os.path.exists(base):
                 self._log(f"Creating local destination folder {base}", 1)
                 os.makedirs(snapshot, exist_ok=True)
@@ -249,7 +241,7 @@ class BackupServer:
                 cmd = "rm -rf {}/{}*".format(snapshots, dateToDelete)
                 os.system(cmd)
 
-    def _execute(self, cmd, outputFile = None):
+    def _execute(self, cmd, outputFile=None):
         """Execute command either local or over SSH"""
 
         if self.serverLocation == 'remote':
@@ -271,6 +263,7 @@ class BackupServer:
         """Properly merge or replace options with defaults"""
 
         # Ensure options has all keys
+        options.setdefault('source', {})
         options['source'].setdefault('ssh', {})
         options['destination'].setdefault('ssh', {})
         options.setdefault('backup', {})
@@ -300,13 +293,13 @@ class BackupServer:
         # Delete invalid configs (for display, becuase it's dumped in the output)
         if options['source']['location'] == 'local': del options['source']['ssh']
         if options['destination']['location'] == 'local': del options['destination']['ssh']
-        if options['backup']['mysql']['enabled'] == False: del options['backup']['mysql']
+        if options['backup']['mysql']['enabled'] is False: del options['backup']['mysql']
 
         # Finally replace remaining flat values
         options = {**defaults, **options}
         return options
 
-    def _log(self, log, indent = 0):
+    def _log(self, log, indent=0):
         """Log string to console with indentation and colors"""
         if indent == 0:
             click.secho("\n----- " + log + " -----", fg='bright_blue')

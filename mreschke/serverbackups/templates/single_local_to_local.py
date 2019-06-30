@@ -1,40 +1,22 @@
 #!/usr/bin/env python3
 
 # Import mReschke Server Backup Scripts
-from mreschke.serverbackups.cli import *
+from mreschke.serverbackups import cli
 
 # Backup servers defined in /etc/mreschke/serverbackups configurations
-# =============================================================================
-
-servers = """
-'localhost':
-  source:
-    location: local
-  destination:
-    location: local
-    path: /Users/mreschke/Backups
-    ssh:
-      address: xenstore
-  backup:
-    files:
-      extra:
-        - /tmp/test/
-"""
-
-backupservers(servers=servers)
-
-
+servers = {
+    'localhost': {
+        'enabled': True,
+        'destination': {
+            'path': '~/Backups'
+        },
+    }
+}
+cli.backupservers(servers=servers)
 
 # Custom backups
-# =============================================================================
-if not allowcustom(): done(); exit()
-log("Running custom backups from backups.py")
-
-
+if not cli.allowcustom(): cli.handle(); exit()
+cli.log("Running custom backups from backups.py")
 
 # Run mreschke.serverbackups package
-# =============================================================================
-done()
-
-
-
+cli.handle()
