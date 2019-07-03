@@ -8,7 +8,7 @@ from mreschke.serverbackups.backupserver import BackupServer
 
 ## From Dictionary
 from mreschke.serverbackups import factory
-defaults = factory.defaults
+defaults = factory.defaults()
 servers = {
     'localhost': {
         'enabled': True,
@@ -19,6 +19,25 @@ servers = {
 }
 backups = factory.from_dict(servers, defaults)
 backups.run()
+
+---
+from mreschke.serverbackups.backups import Backups
+
+backups = Backups(path='/etc/')
+
+backups.servers = {
+
+}
+backups = Backups(servers)
+backups.defaults['override'] = 'asfd'
+backups.filter('cluster', 'linode')
+backups.run()
+print backups.defaults
+print backups.servers
+
+
+
+
 
 
 ## From Folder
@@ -27,9 +46,12 @@ backups = factory.from_path('/etc/mreschke/serverbackups')
 backups.run()
 
 
-## From CLI Script as Dictionary
+
+
+
+# From CLI Script as Dictionary
 from mreschke.serverbackups import cli, factory
-defaults = factory.defaults
+defaults = factory.defaults()
 servers = {
     'localhost': {
         'enabled': True,
@@ -39,8 +61,13 @@ servers = {
     }
 }
 backups = factory.from_dict(servers, defaults)
-backups.run
+backups.run()
 
+// Custom backups
+if not cli.allowcustom(): cli.handle(); exit()
+cli.log("Running custom backups from backups.py")
+
+// Handle CLI requests
 cli.handle()
 
 

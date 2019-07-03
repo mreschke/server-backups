@@ -1,11 +1,12 @@
 import os
 import io
 import yaml
-from mreschke.serverbackups import backups
+from mreschke.serverbackups.backups import Backups
 
 
 def from_dict(servers, defaults):
-    x = backups()
+    backups = Backups(servers, defaults)
+    return backups
 
 
 def defaults():

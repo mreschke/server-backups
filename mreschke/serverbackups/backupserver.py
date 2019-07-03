@@ -3,8 +3,8 @@ import os
 import click
 import subprocess
 from glob import glob
-from prettyprinter import cpprint
 from datetime import datetime, timedelta
+from .utils import dump, dd
 
 
 class BackupServer:
@@ -18,7 +18,6 @@ class BackupServer:
 
         # Merge and replace defaults and options
         options = self._merge_defaults(options, defaults)
-        dd(options)
 
         # Set instance variables
         self.options = options
@@ -81,6 +80,7 @@ class BackupServer:
 
         # Get destination string
         dest = self.options['destination']['path']
+        dest_original = dest
         dest_location = self.options['destination']['location']
         dest_ssh = []
         if dest_location == 'local':
@@ -91,7 +91,7 @@ class BackupServer:
 
         # Define backup directories
         base = dest + '/' + self.server
-        current = base + '/current'
+        current = dest_original + '/' + self.server + '/current' # Should always be local versoin, not user@server
         snapshot = base + '/snapshots/' + self.snapshot
         #dd(base, current, snapshot)
 
@@ -128,6 +128,8 @@ class BackupServer:
 
             from sarge import run
             run(cmd)
+
+            exit(cmd)
 
         except KeyboardInterrupt:
             exit()
@@ -309,16 +311,3 @@ class BackupServer:
             click.secho("\n--------- " + log + " -------", fg='bright_magenta')
 
 # End Class
-
-
-def dump(*args):
-    """Dump variables using prettyprinter"""
-    for arg in args:
-        cpprint(arg)
-
-
-def dd(*args):
-    """Dump variables using prettyprinter and exit()"""
-    for arg in args:
-        cpprint(arg)
-    exit()

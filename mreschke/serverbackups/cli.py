@@ -31,7 +31,35 @@ def run(all, custom, servers, server, cluster):
     """Run backups"""
 
 
-def backupservers(config_path='/etc/mreschke/serverbackups', servers=None, defaults=None):
+def load(backups):
+    # Only run with proper cli flags
+    if not any(x in ['--all', '--servers', '--server', '--cluster'] for x in sys.argv): return
+
+    log("Running server backups")
+
+    if backups.servers:
+        # Passing in a dictionary of servers
+        log("Backups defined as inline dictionary", 1)
+    else:
+        # Using config directory
+        log(f"Using config dir {backups.config_path}", 1)
+
+    # Run a single server
+    if '--server' in sys.argv:
+        server = sys.argv[sys.argv.index("--server") + 1]
+        log(f"Running single server '{server}'", 1)
+
+    # Run all servers in a single cluster
+    elif '--cluster' in sys.argv:
+        cluster = sys.argv[sys.argv.index("--cluster") + 1]
+        log(f"Running servers in cluster '{cluster}'", 1)
+
+    else:
+        log(f"Running all servers defined in config", 1)
+        backups.run()
+
+
+def backupserversOLD(config_path='/etc/mreschke/serverbackups', servers=None, defaults=None):
     """Run the main BackupServer class from the server config.yml and config.d files"""
 
     # Only run with proper cli flags
@@ -102,4 +130,4 @@ def log(log, indent=0):
 
 
 # Explicit exports
-__all__ = ['handle', 'allowcustom', 'backupservers', 'log', 'dump', 'dd']
+__all__ = ['handle', 'allowcustom', 'load', 'log', 'dump', 'dd']
