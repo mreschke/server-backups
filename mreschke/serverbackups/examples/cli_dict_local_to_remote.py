@@ -9,8 +9,14 @@ servers = {
     'myserver.example.net': {
         'enabled': True,
         'destination': {
-            'path': '/home/mreschke/Backups',
-            #'path': '/Users/mreschke/Backups,'
+            'location': 'ssh',
+            'path': '/store/backups',
+            'ssh': {
+                'host': 'linstore.mreschke.net',
+                'port': 22,
+                'user': 'toor',
+                'key': '~/.ssh/id_rsa'
+            }
         },
     }
 }

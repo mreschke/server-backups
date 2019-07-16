@@ -5,10 +5,11 @@ from mreschke.serverbackups.backups import Backups
 
 # Backup servers defined in dictionary
 servers = {
-    'localhost': {
+    'myserver.example.net': {
         'enabled': True,
         'destination': {
             'path': '/home/mreschke/Backups'
+            #'path': '/Users/mreschke/Backups'
         },
     }
 }

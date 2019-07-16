@@ -5,6 +5,10 @@ from mreschke.serverbackups.backupserver import BackupServer
 
 
 class Backups:
+    """Backup a complete set of servers"""
+
+    __author__ = "Matthew Reschke <mail@mreschke.com>"
+    __license__ = "MIT"
 
     def __init__(self, servers, config_path=None):
         if config_path:

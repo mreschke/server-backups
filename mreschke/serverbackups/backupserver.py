@@ -5,6 +5,7 @@ import subprocess
 from glob import glob
 from datetime import datetime, timedelta
 from .utils import dump, dd
+from types import SimpleNamespace as obj
 
 
 class BackupServer:
@@ -17,12 +18,13 @@ class BackupServer:
         """Initialize backup class"""
 
         # Merge and replace defaults and options
-        options = self._merge_defaults(options, defaults)
+        options = self.merge_defaults(options, defaults)
 
         # Set instance variables
         self.options = options
         self.server = server
         self.snapshot = datetime.today().strftime(options['snapshotDateFormat'])
+        self.snapshotPath = self.path('snapshots/' + self.snapshot)
         self.today = datetime.today().strftime("%Y%m%d")
 
     def run(self):
@@ -30,28 +32,39 @@ class BackupServer:
 
         # Do not run if backup is disabled
         if 'enabled' in self.options.keys() and self.options['enabled'] is False:
-            self._log(f"Server '{self.server}' configuration DISABLED, skipping server")
+            self.log(f"Server '{self.server}' configuration DISABLED, skipping server")
             return
 
         # Begin backup routine
-        self._log(f"Running '{self.server}' server backup now")
+        self.log(f"Running '{self.server}' server backup now")
 
         # Show YAML config in output
-        self._log(f"YAML config for '{self.server}'", 1)
-        dump(self.options)
+        self.log(f"YAML config for '{self.server}'", 1)
+        dump(self.options)  # Keep this one, nice output
 
         # Prepare backup directories
-        self._prepare()
+        self.prepare()
 
         # Backup server items
-        self._backup_files()
-        #self.backup_script_output() #CODED and DONE!
+        self.backup_files()
+        #self.backup_script_output()
         #self.backup_mysql()
 
         # Cleanup old snapshots
-        self._cleanup()
+        self.cleanup()
 
-    def _backup_files(self):
+    def path(self, path=None):
+        result = self.options['destination']['path'] + '/' + self.server
+        if path: return result + '/' + path
+        return result
+
+    def backend(self, type=None):
+        backend = self.options['destination']['location']
+        if type:
+            return type == backend
+        return backend
+
+    def backup_files(self):
         """
         Backup local or remote files using rsync hardlink snapshots
         See http://anouar.adlani.com/2011/12/how-to-backup-with-rsync-tar-gpg-on-osx.html
@@ -62,9 +75,9 @@ class BackupServer:
         if (not files): return
 
         # Create exclude file for rsync
-        excludeFile = '/tmp/backups.exclude'
-        if os.path.exists(excludeFile): os.remove(excludeFile)
-        with open(excludeFile, 'w') as f: f.write('\n'.join(self.options['backup']['files']['exclude']))
+        exclude_file = '/tmp/backups.exclude'
+        if os.path.exists(exclude_file): os.remove(exclude_file)
+        with open(exclude_file, 'w') as f: f.write('\n'.join(self.options['backup']['files']['exclude']))
 
         # Get a string of source files
         src = []
@@ -75,39 +88,37 @@ class BackupServer:
                 src.append(file)
             elif src_location == 'ssh':
                 src_ssh = self.options['destination']['ssh']
-                src.append(src_ssh['user'] + '@' + src_ssh['address'] + ':' + file)
+                src.append(src_ssh['user'] + '@' + src_ssh['host'] + ':' + file)
         src = ' '.join(src)  # Array to string rsync
 
         # Get destination string
-        dest = self.options['destination']['path']
-        dest_original = dest
-        dest_location = self.options['destination']['location']
+        dest = self.path()
         dest_ssh = []
-        if dest_location == 'local':
+        if self.backend('local'):
             pass
-        elif dest_location == 'ssh':
+        elif self.backend('ssh'):
             dest_ssh = self.options['destination']['ssh']
-            dest = dest_ssh['user'] + '@' + dest_ssh['address'] + ':' + dest
+            dest = dest_ssh['user'] + '@' + dest_ssh['host'] + ':' + dest
 
         # Define backup directories
-        base = dest + '/' + self.server
-        current = dest_original + '/' + self.server + '/current' # Should always be local versoin, not user@server
-        snapshot = base + '/snapshots/' + self.snapshot
+        base = dest  # Will be either local or user@server
+        current = self.path('current')  # Should always be local version, not user@server
+        snapshot = base + '/snapshots/' + self.snapshot  # Will be either local or user@server
         #dd(base, current, snapshot)
 
         # Backup new snapshot
-        self._log("Backing up files {} to {}".format(src, snapshot), 1)
+        self.log("Backing up files {} to {}".format(src, snapshot), 1)
         params = "--archive --verbose --relative --hard-links --delete --progress --partial --compress"
 
-        sshString = ''
+        ssh_string = ''
         if src_location == 'ssh':
-            sshString = "-e \"ssh -p {} -i {} -o LogLevel=quiet\"".format(src_ssh['port'], src_ssh['key'])
-        elif dest_location == 'ssh':
-            sshString = "-e \"ssh -p {} -i {} -o LogLevel=quiet\"".format(dest_ssh['port'], dest_ssh['key'])
+            ssh_string = "-e \"ssh -p {} -i {} -o LogLevel=quiet\"".format(src_ssh['port'], src_ssh['key'])
+        elif self.backend('ssh'):
+            ssh_string = "-e \"ssh -p {} -i {} -o LogLevel=quiet\"".format(dest_ssh['port'], dest_ssh['key'])
 
         # Execute rsync
         try:
-            cmd = "rsync {} {} --exclude-from={} --link-dest={} {} {}".format(sshString, params, excludeFile, current, src, snapshot)
+            cmd = "rsync {} {} --exclude-from={} --link-dest={} {} {}".format(ssh_string, params, exclude_file, current, src, snapshot)
             #os.system(cmd)
             #subprocess.run(cmd, shell=True, stdout=subprocess.PIPE).stdout
             #print(results.stdout.decode('utf-8'))
@@ -118,7 +129,7 @@ class BackupServer:
             #rsync = sh.rsync.bake(e=f"ssh -p {self.sshPort} -i {self.sshKey} -o LogLevel=quiet")
             #print(rsync(
                 #'--archive', '--verbose', '--relative', '--hard-links', '--delete', '--progress', '--partial', '--compress',
-                #f"--exclude-from={excludeFile}",
+                #f"--exclude-from={exclude_file}",
                 #f"--link-dest={current}",
                 #src,
                 #snapshot
@@ -129,12 +140,10 @@ class BackupServer:
             from sarge import run
             run(cmd)
 
-            exit(cmd)
-
         except KeyboardInterrupt:
             exit()
 
-    def _backup_script_output(self):
+    def backup_script_output(self):
         """Backup the output of a script"""
 
         src = self.backupRoot + '/' + self.server + '/snapshots/' + self.snapshot
@@ -148,10 +157,10 @@ class BackupServer:
             filename = os.path.basename(output)
             os.makedirs(path, exist_ok=True)
 
-            self._log(f"Running {name} script with output sent to {path}/{filename}", 1)
+            self.log(f"Running {name} script with output sent to {path}/{filename}", 1)
             self.execute(cmd, path + '/' + filename)
 
-    def _backup_mysql(self):
+    def backup_mysql(self):
         """Backup mysql databases and tables"""
 
         # Ignore disabled mysql entries
@@ -191,10 +200,10 @@ class BackupServer:
             name = db['name']
             tables = db['tables']
             if tables == '*':
-                self._log("Backing up MySQL database " + name + " ALL tables", 1)
+                self.log("Backing up MySQL database " + name + " ALL tables", 1)
                 tables = ''
             else:
-                self._log("Backing up MySQL database " + name + " ONLY " + str(len(tables)) + " tables", 1)
+                self.log("Backing up MySQL database " + name + " ONLY " + str(len(tables)) + " tables", 1)
                 tables = ' '.join(tables)
 
             # Backup database and all or some tables
@@ -205,29 +214,27 @@ class BackupServer:
             # Output is piped ON MySQL server to gzip before being sent over SSH!  Do not use the --compress option, that is only between client and server (which is localhost anyhow usually)
             self.execute(f"mysqldump -u{user} -p'{password}' --quick --single-transaction --flush-logs {name} {tables} | gzip", dest + '/' + name + ".sql.gz")
 
-    def _prepare(self):
+    def prepare(self):
         """Prepare backup system"""
 
-        # Create local destination folders
-        dest = self.options['destination']
-        if dest['location'] == 'local':
-            base = dest['path'] + '/' + self.server
-            snapshot = base + '/snapshots/' + self.snapshot
-            if not os.path.exists(base):
-                self._log(f"Creating local destination folder {base}", 1)
-                os.makedirs(snapshot, exist_ok=True)
+        # Create directory (either local or remote)
+        self.log(f"Creating destination snapshot folder {self.snapshotPath}", 1)
+        self.execute("mkdir -p " + self.snapshotPath)
 
-    def _cleanup(self):
+    def cleanup(self):
         """Cleanup old snapshots"""
 
         # Define backup directories
-        dest = self.options['destination']
-        base = dest['path'] + '/' + self.server
-        current = base + '/current'
-        snapshots = base + '/snapshots'
+        current = self.path('current')
+        snapshots = self.path('snapshots')
 
         # Symlink latest snapshot to current link
-        os.system("ln -snf $(ls -1d {}/* | tail -n1) {}".format(snapshots, current))
+        # Only difference is on remote, the $() is escaped
+        if self.backend('local'):
+            cmd = "ln -snf $(ls -1d {}/* | tail -n1) {}".format(snapshots, current)
+        elif self.backend('ssh'):
+            cmd = "ln -snf \\$(ls -1d {}/* | tail -n1) {}".format(snapshots, current)
+        self.execute(cmd)
 
         # Clean old snapshots
         cleanSnapshotsAfterDays = self.options['cleanSnapshotsAfterDays']
@@ -235,19 +242,25 @@ class BackupServer:
             dateToDelete = (datetime.today() - timedelta(cleanSnapshotsAfterDays)).strftime("%Y%m%d")
             oldSnapshots = glob(snapshots + '/' + dateToDelete + "*")
 
-            self._log("Deleting snapshots that were made {} days ago".format(cleanSnapshotsAfterDays), 1)
+            self.log("Deleting snapshots that were made {} days ago".format(cleanSnapshotsAfterDays), 1)
             if oldSnapshots:
                 for oldSnapshot in oldSnapshots:
-                    self._log("Deleting old snapshot {}".format(oldSnapshot), 2)
+                    self.log("Deleting old snapshot {}".format(oldSnapshot), 2)
                 # Delete old snapshots
                 cmd = "rm -rf {}/{}*".format(snapshots, dateToDelete)
-                os.system(cmd)
+                self.execute(cmd)
+                #os.system(cmd)
 
-    def _execute(self, cmd, outputFile=None):
+    def execute(self, cmd, outputFile=None):
         """Execute command either local or over SSH"""
 
-        if self.serverLocation == 'remote':
-            cmd = "ssh -p {} -i {} -o LogLevel=quiet {}@{} \"{}\"".format(self.sshPort, self.sshKey, self.sshUser, self.serverIP, cmd)
+        #dest = self.options['destination']['location']
+        dest = self.options['destination']
+        if self.backend('ssh'):
+            ssh = obj(**dest['ssh'])
+            #cmd = "ssh -p {} -i {} -o LogLevel=quiet {}@{} \"{}\"".format(ssh.port, ssh.key, ssh.user, ssh.host, cmd)
+            cmd = f"ssh -p {ssh.port} -i {ssh.key} -o LogLevel=quiet {ssh.user}@{ssh.host} \"{cmd}\""
+            #dump(cmd)
 
         if isinstance(outputFile, str):
             # Save output to file denoted by outputFile
@@ -261,7 +274,7 @@ class BackupServer:
                 # Return as string
                 return results.stdout.decode('utf-8')
 
-    def _merge_defaults(self, options, defaults):
+    def merge_defaults(self, options, defaults):
         """Properly merge or replace options with defaults"""
 
         # Ensure options has all keys
@@ -301,7 +314,7 @@ class BackupServer:
         options = {**defaults, **options}
         return options
 
-    def _log(self, log, indent=0):
+    def log(self, log, indent=0):
         """Log string to console with indentation and colors"""
         if indent == 0:
             click.secho("\n----- " + log + " -----", fg='bright_blue')
