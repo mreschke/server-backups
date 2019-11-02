@@ -2,6 +2,6 @@ Click==7.0
 colorful==0.4.4
 prettyprinter==0.14.0
 Pygments==2.3.1
-PyYAML==3.13
+PyYAML==5.1
 sarge==0.1.5.post0
 sh==1.12.14
