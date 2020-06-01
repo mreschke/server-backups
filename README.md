@@ -1,6 +1,16 @@
 # server-backups
 
 
+# TODO
+
+Added to my php one
+* run scripts BEFORE backing up files as they may prep other backups
+* Don't run script if already running
+
+Not added to PHP one
+* Ability to prune backups but keep first month, last months, first year, last of year, even first or last of week, like restic
+
+
 
 # CLI API FIRST - What I Want
 

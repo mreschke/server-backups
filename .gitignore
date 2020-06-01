@@ -1,8 +1,12 @@
 # OS files
 .DS_Store
+._.DS_Store
+._.TemporaryItems
+.AppleDouble
 Thumbs.db
 .nfs*
 .swp
+
 
 # IDE files
 /.idea
@@ -32,6 +36,9 @@ develop-eggs/
 *.spec
 pip-log.txt
 pip-delete-this-directory.txt
+
+# Django Files
+/static
 
 # JavaScript files
 /node_modules

@@ -1,0 +1,23 @@
+# You can also add this [flake8] and all to setup.cfg
+[flake8]
+ignore =
+    # E501 Ignore Long Lines
+    E501,
+    # E265 Ignore Comments must have space after pound
+    E265,
+    # E701 Ignore multiple statements on one line (colon)
+    E701,
+    # E116 Ignore unexpected indentation (in comments)
+    E116,
+    # E702 Ignore multiple statements on one line (semicolon)
+    E702,
+    # Continuation line under-indented for visual indent
+    E128,
+    # Closing bracket does not match visual indentation
+    E124,
+    # Line break occurred before a binary operator (W503)
+    W503,
+    # Unexpected spaces around keyword / parameter equals
+    E251,
+    # Too many blank lines
+    E303

@@ -5,15 +5,9 @@ verify_ssl = true
 
 [dev-packages]
 flake8 = "*"
-
-[packages]
-click = "*"
-prettyprinter = "*"
-pyyaml = "*"
-sarge = "*"
-sh = "*"
-ipython = "*"
 mreschke_serverbackups = {editable = true,path = "."}
 
+[packages]
+
 [requires]
-python_version = "3.7"
+python_version = "3.8"
