@@ -17,6 +17,9 @@ setup(
 
     # I am using Native namespaces see https://packaging.python.org/guides/packaging-namespace-packages/#native-namespace-packages
     packages=["mreschke.serverbackups"],
+    package_data={
+        'mreschke.serverbackups': ['templates/*'],
+    },
     zip_safe=False,
     python_requires=">=3.5",
     classifiers=[
@@ -27,7 +30,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "License :: OSI Approved :: MIT License",
         "Operating System :: Unix",
-        "Environment :: CLI Environment",
+        "Environment :: Console",
     ],
     install_requires=[
         "click==7.1.*",

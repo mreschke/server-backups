@@ -11,4 +11,4 @@ mreschke_serverbackups = {editable = true,path = "."}
 [packages]
 
 [requires]
-python_version = "3.5"
+python_version = "3.8"
