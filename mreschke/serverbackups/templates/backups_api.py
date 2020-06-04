@@ -1,11 +1,10 @@
 from datetime import date
 from mreschke.serverbackups import Backups, log
-from mreschke.serverbackups.utils import dump, dd
 
 # Optionally configure logger, but this app may have its own log settings
 log.init({
     'console': {
-        'level': 'DEBUG',
+        'level': 'INFO',  # DEBUG, INFO, WARNING, ERROR, CRITICAL
     },
     'file': {
         'enabled': True,
@@ -13,11 +12,12 @@ log.init({
     }
 })
 
-# Set per server defaults
+# Set per server defaults.  Each server can override parts of this default.
 defaults = {
     'enabled': True,
     'cluster': None,
     'prune': {
+        # Keep all daily up to X days back, last snapshot in a week X weeks back, last snapshot in a month X months back...
         'keepDaily': 30,
         'keepWeekly': 24,
         'keepMonthly': 120,
@@ -29,6 +29,7 @@ defaults = {
     'source': {
         'location': 'local',  # local, ssh,
         'ssh': {
+            # Only used with location=ssh
             'host': 'server.example.com',  # or IP address,
             'port': 22,
             'user': 'root',
@@ -39,6 +40,7 @@ defaults = {
         'location': 'local',  # local, ssh,
         'path': '/mnt/backups',
         'ssh': {
+            # Only used with location=ssh
             'host': 'server.example.com',  # or IP address,
             'port': 22,
             'user': 'root',
@@ -46,9 +48,12 @@ defaults = {
         },
     },
     'backup': {
+        # Pre scripts run on destination before this servers backups, a good place to prep files for backup
         'preScripts': {
-            'dpkg': {'script': 'dpkg -l | gzip', 'output': 'dpkg.gz', 'enabled': False},
+            'gitlab': {'script': 'sudo gitlab-backup create', 'output': 'gitlab-backup.txt', 'enabled': False},
         },
+        # Files to backup on the destination.  Use extra in your actual server definition for extra files.
+        # Arrays are merged with defaults, so you could append to common and exclude as well
         'files': {
             'common': [
                 '/etc/',
@@ -74,7 +79,15 @@ defaults = {
             'port': 3306,
             'user': 'root',
             'password': 'unknown',
+            # All databases minus exclusions
             'dbs': '*',
+            # A list of databases (all tables)
+            # 'dbs': ['db1', 'db2'],
+            # A list of database with a selection of tables
+            # 'dbs': [
+            #     {'name': 'db1', 'tables': ['table1', 'table2']},
+            #     {'name': 'db2', 'tables': '*'},
+            # ],
             'excludeDbs': [
                 'information_schema',
                 'performance_schema',
@@ -82,6 +95,7 @@ defaults = {
                 '#mysql50#lost+found',
             ],
         },
+        # Post scripts run on destination after this servers backups, a good place to cleanup files
         'postScripts': {
             'dpkg': {'script': 'dpkg -l | gzip', 'output': 'dpkg.gz', 'enabled': False},
         },
@@ -90,9 +104,10 @@ defaults = {
 
 # Define each server to backup (each will be merged with defaults config)
 servers = {
-    'sunmac.mreschke.net': {
+    'myserver.example.com': {
         'enabled': True,
         'cluster': 'localhost',
+        # Example of local -> local backup
         'source': {
             'location': 'local',
         },
@@ -102,51 +117,44 @@ servers = {
         },
         'backup': {
             'preScripts': {
-                'test': {
-                    'enabled': True,
-                    'script': 'cat /etc/hosts',
-                    'output': 'hosts.txt'
-                },
-                'test2': {
-                    'enabled': True,
-                    'script': 'ls -Hhal /etc/',
-                    'output': 'etc.txt'
-                },
+                #'gitlab': {'enabled': True}
+                # Example of capturing script output to snapshot
+                'test2': {'script': 'ls -Hhal /etc/', 'output': 'etc.txt', 'enabled': True},
             },
             'mysql': {
                 'enabled': True,
-                'mysqlCmd': 'docker exec -i mysql mysql',
-                'dumpCmd': 'docker exec -i mysql mysqldump',
+                'mysqlCmd': 'mysql',
+                #'mysqlCmd': 'docker exec -i mysql mysql',
+                'dumpCmd': 'mysqldump',
+                #'dumpCmd': 'docker exec -i mysql mysqldump',
                 'host': '127.0.0.1',
                 'port': 3306,
                 'user': 'root',
-                'password': 'techie',
-                #'dbs': '*',
-                'dbs': ['wiki'],
-                # 'dbs': [
-                #     {'name': 'blog', 'tables': ['test1', 'test2']},
-                # ]
+                'password': 'password',
+                'dbs': '*',
             },
+            'postScripts': {
+                # Export dpkg package list of Linux Debian
+                'dpkg': {'enabled': True}
+                # Example of backing up postgres database
+                #'fusionauth': {'script': 'cd /tmp/ && sudo -u postgres pg_dump fusionauth | gzip', 'output': 'fusionauth.sql.gz', 'enabled': True},
+            }
         },
     },
 }
 
-# Test by passing in servers, using builtin defaults
+# Initialize Backup Class
+# If you are defining servers in a dictionary above
 #backups = Backups(servers=servers)
 
-# Test by passing in servers and defaults
-#backups = Backups(servers=servers, defaults=defaults)
+# If you are defining both servers and defaults above
+backups = Backups(servers=servers, defaults=defaults)
 
-# Test by using /etc/serverbackups
-backups = Backups()
+# If you are using a config.d directory (/etc/serverbackups by default)
+#backups = Backups()
+#backups = Backups(config_path='/etc/alternative/dir')
 
-# Backups API Explorer
-# dump("DEFAULTS", backups.defaults)
-#dump("SERVERS", backups.servers)
-# dump(backups.config_path)
-# dump(backups.configd_path)
-# dump(backups.defaults_file)
-
+# Run backups
 # Can just run them all
 backups.run()
 

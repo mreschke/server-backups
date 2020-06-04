@@ -1,0 +1,33 @@
+# This server config is merged with ../defaults.yml to keep it less verbose.
+# See defaults for possible options to override
+sunmac.mreschke.net:
+  enabled: True
+  cluster: localhost
+  source:
+    location: local
+  destination:
+    location: local
+    path: /Users/mreschke/Backups
+
+  # Backup items
+  backup:
+    # Pre scripts run on destination before this servers backups, a good place to prep files for backup
+    #preScripts:
+
+    # Files to backup on the destination.  Use extra in your actual server definition for extra files.
+    # Arrays are merged with defaults, so you could append to common and exclude as well
+    files:
+      extra:
+        - /var/log/
+
+    # MySQL Databases and Tables
+    mysql:
+      enabled: True
+      mysqlCmd: docker exec -i mysql mysql
+      dumpCmd: docker exec -i mysql mysqldump
+      password: techie
+      dbs:
+        - wiki
+
+    # Post scripts run on destination after this servers backups, a good place to cleanup files
+    #postScripts:

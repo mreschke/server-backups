@@ -1,43 +1,92 @@
-# Default config for a single server
-enabled: true
-snapshotDateFormat: '%Y%m%d%H%M%S'
-cleanSnapshotsAfterDays: 3    # 0 to disable snapshot cleaning
+# Default config for a single server. Each server can override parts of this default.
+enabled: True
+cluster:
+
+# Keep all daily up to X days back, last snapshot in a week X weeks back, last snapshot in a month X months back...
+prune:
+  keepDaily: 30
+  keepWeekly: 24
+  keepMonthly: 120
+  keepYearly: 10
+
+# Rsync options
+rsync:
+  verbose: True
+
+# Source server connection details
 source:
   location: local # local, ssh
-  ssh:
-    address: server.example.com # or IP address
-    port: 22
-    user: root
-    key: ~/.ssh/id_rsa
-destination:
-  location: local # local, ssh
-  path: /mnt/backups
+  # Only used with location=ssh
   ssh:
     host: server.example.com # or IP address
     port: 22
     user: root
     key: ~/.ssh/id_rsa
+
+# Destination server connection details
+destination:
+  location: local # local, ssh
+  path: /mnt/backups
+  # Only used with location=ssh
+  ssh:
+    host: server.example.com # or IP address
+    port: 22
+    user: root
+    key: ~/.ssh/id_rsa
+
+# Backup items
 backup:
+  # Pre scripts run on destination before this servers backups, a good place to prep files for backup
+  preScripts:
+    gitlab: {script: 'sudo gitlab-backup create', output: 'gitlab-backup.txt', enabled: False}
+
+  # Files to backup on the destination.  Use extra in your actual server definition for extra files.
+  # Arrays are merged with defaults, so you could append to common and exclude as well
   files:
+    # Common files for a linux distribution
     common:
       - /etc/
-      #- /usr/local/bin/
-      #- /root/
-      #- /home/
-      #- /var/log/
-      #- /var/spool/cron/
+      - /usr/local/bin/
+      - /root/
+      - /home/
+      - /var/log/
+      - /var/spool/cron/
     extra: []
     exclude:
       - lost+found
       - .Trash-1000
-  scripts:
-    dpkg: {script: 'dpkg -l | gzip', output: 'dpkg.gz', enabled: true}
-    #postgres: {script: 'sudo -u postgres pg_dump jira | gzip', output: 'jira.sql.gz', enabled: true}
+
+  # MySQL Databases and Tables
   mysql:
-    enabled: false
+    enabled: False
+    mysqlCmd: mysql
+    #mysqlCmd: 'docker exec -i mysql mysql'
+    dumpCmd: mysqldump
+    #dumpCmd: 'docker exec -i mysql mysqldump'
     host: 127.0.0.1
+    port: 3306
     user: root
+    password: unknown
+    # All databases minus exclusions
     dbs: '*'
+    #A list of databases (all tables)
+    # dbs:
+    #   - db1
+    #   - db2
+    #A list of database with a selection of tables
+    # dbs:
+    #   - name: 'db1'
+    #     tables:
+    #       - table1
+    #       - table2
+    #   - name: 'db2'
+    #     tables: *
     excludeDbs:
       - information_schema
       - performance_schema
+      - lost+found
+      - '#mysql50#lost+found'
+
+  # Post scripts run on destination after this servers backups, a good place to cleanup files
+  postScripts:
+    dpkg: {script: 'dpkg -l | gzip', output: 'dpkg.gz', enabled: False}

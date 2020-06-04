@@ -1,0 +1,43 @@
+# This server config is merged with ../defaults.yml to keep it less verbose.
+# See defaults for possible options to override
+myserver.example.com:
+  enabled: True
+  cluster: macs
+  source:
+    location: local
+  destination:
+    location: local
+    path: /Users/mreschke/Backups
+
+  # Backup items
+  backup:
+    # Pre scripts run on destination before this servers backups, a good place to prep files for backup
+    preScripts:
+      gitlab: {enabled: False}
+
+    # Files to backup on the destination.  Use extra in your actual server definition for extra files.
+    # Arrays are merged with defaults, so you could append to common and exclude as well
+    files:
+      extra:
+        - /some/extra/path/besides/common/in/defaults
+
+    # MySQL Databases and Tables
+    mysql:
+      enabled: True
+      password: password
+      dbs: '*'
+
+    # Post scripts run on destination after this servers backups, a good place to cleanup files
+    postScripts:
+      # Export dpkg package list of Linux Debian
+      dpkg: {enabled: True}
+      # Example of backing up postgres database
+      # fusionauth:
+      #   script: 'cd /tmp/ && sudo -u postgres pg_dump fusionauth | gzip'
+      #   output: 'fusionauth.sql.gz'
+      #   enabled: True
+      # Example of capturing script output to snapshot
+      # test:
+      #   script: 'ls -Hhal /etc/'
+      #   output: 'etc.txt'
+      #   enabled: True

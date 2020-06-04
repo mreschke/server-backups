@@ -87,7 +87,7 @@ defaults = {
             # A list of database with a selection of tables
             # 'dbs': [
             #     {'name': 'db1', 'tables': ['table1', 'table2']},
-            #     {'name': 'db2', 'tables': ['table1', 'table2']},
+            #     {'name': 'db2', 'tables': '*'},
             # ],
             'excludeDbs': [
                 'information_schema',
@@ -119,31 +119,43 @@ servers = {
         'backup': {
             'preScripts': {
                 #'gitlab': {'enabled': True}
-                # Example of capturing script output to snapshot
-                'test2': {'script': 'ls -Hhal /etc/', 'output': 'etc.txt', 'enabled': True},
             },
             'mysql': {
                 'enabled': True,
-                #'mysqlCmd': 'mysql',
-                'mysqlCmd': 'docker exec -i mysql mysql',
-                #'dumpCmd': 'mysqldump',
-                'dumpCmd': 'docker exec -i mysql mysqldump',
+                'mysqlCmd': 'mysql',
+                #'mysqlCmd': 'docker exec -i mysql mysql',
+                'dumpCmd': 'mysqldump',
+                #'dumpCmd': 'docker exec -i mysql mysqldump',
                 'host': '127.0.0.1',
                 'port': 3306,
                 'user': 'root',
-                'password': 'techie',
-                #'dbs': '*',
-                'dbs': ['wiki'],
+                'password': 'password',
+                'dbs': '*',
             },
             'postScripts': {
-                'dpkg': {'enabled': False}
+                # Export dpkg package list of Linux Debian
+                'dpkg': {'enabled': True},
+                # Example of backing up postgres database
+                #'fusionauth': {'script': 'cd /tmp/ && sudo -u postgres pg_dump fusionauth | gzip', 'output': 'fusionauth.sql.gz', 'enabled': True},
+                # Example of capturing script output to snapshot
+                #'test2': {'script': 'ls -Hhal /etc/', 'output': 'etc.txt', 'enabled': True},
             }
         },
     },
 }
 
-# Run backups
-backups = Backups(servers=servers)
+# Initialize Backup Class
+# If you are defining servers in a dictionary above
+#backups = Backups(servers=servers)
+
+# If you are defining both servers and defaults above
+backups = Backups(servers=servers, defaults=defaults)
+
+# If you are using a config.d directory (/etc/serverbackups by default)
+#backups = Backups()
+#backups = Backups(config_path='/etc/alternative/dir')
+
+# Run Backups
 cli.start(backups)
 
 
