@@ -315,7 +315,6 @@ servers = {
         },
         'destination': {
             'location': 'local',
-            'path': '/Users/mreschke/Backups'
         },
         'backup': {
             'preScripts': {
@@ -478,7 +477,7 @@ log.init({
 # Source and Destination default to 'local'
 servers = {
     'myserver.example.com': {
-        'destination': {'path': '/Users/mreschke/Backups'},
+        'destination': {'path': '/mnt/Backups'},
         'backup': {
             'files': {
                 'common': [

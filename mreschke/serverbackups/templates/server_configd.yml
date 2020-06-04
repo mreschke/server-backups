@@ -7,7 +7,7 @@ myserver.example.com:
     location: local
   destination:
     location: local
-    path: /Users/mreschke/Backups
+    path: /mnt/Backups
 
   # Backup items
   backup:

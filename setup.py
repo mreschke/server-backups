@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="mreschke-serverbackups",
-    version="1.0.0",
+    version="1.0.1",
     description="Config driven server backups that feel like a simple backup.py script",
     long_description=long_description,
     long_description_content_type="text/markdown",

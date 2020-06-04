@@ -50,7 +50,7 @@ def init_directory(path):
         os.makedirs(path)
         os.mkdir(path + '/config.d')
         copyfile(defaults, path + '/defaults.yml')
-        copyfile(server, path + '/config.d/myserver.mreschke.net.yml')
+        copyfile(server, path + '/config.d/myserver.example.com.yml')
         click.secho("Done")
     else:
         exit("Cancelled, bye.")

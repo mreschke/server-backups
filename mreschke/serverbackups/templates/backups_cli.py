@@ -127,7 +127,6 @@ servers = {
         },
         'destination': {
             'location': 'local',
-            'path': '/Users/mreschke/Backups'
         },
         'backup': {
             'preScripts': {

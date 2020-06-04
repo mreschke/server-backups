@@ -121,13 +121,8 @@ servers = {
         'enabled': True,
         'cluster': 'localhost',
         # Example of local -> local backup
-        'source': {
-            'location': 'local',
-        },
-        'destination': {
-            'location': 'local',
-            'path': '/Users/mreschke/Backups'
-        },
+        'source': {'location': 'local'},
+        'destination': {'location': 'local'},
         'backup': {
             'preScripts': {
                 #'gitlab': {'enabled': True}
