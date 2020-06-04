@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="mreschke-serverbackups",
-    version="1.0.1",
+    version="1.0.0",
     description="Config driven server backups that feel like a simple backup.py script",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -36,7 +36,7 @@ setup(
         "click==7.1.*",
         "colored==1.4.*",
         "prettyprinter==0.18.*",
-        "PyYAML==5.3.*",
+        "PyYAML==5.*",
     ],
     entry_points={
         "console_scripts": [
