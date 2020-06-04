@@ -1,0 +1,42 @@
+# This is applied in code when you DONT provide a default dictionary or file
+enabled: True
+cluster:
+prune:
+  keepDaily: 30
+  keepWeekly: 24
+  keepMonthly: 60
+  keepYearly: 10
+rsync:
+  verbose: True
+source:
+  location: local
+  ssh:
+    host: server.example.com
+    port: 22
+    user: root
+    key: ~/.ssh/id_rsa
+destination:
+  location: local
+  path: /mnt/backups
+  ssh:
+    host: server.example.com
+    port: 22
+    user: root
+    key: ~/.ssh/id_rsa
+backup:
+  preScripts: {}
+  files:
+    common: []
+    extra: []
+    exclude: []
+  mysql:
+    enabled: False
+    mysqlCmd: mysql
+    dumpCmd: mysqldump
+    host: 127.0.0.1
+    port: 3306
+    user: root
+    password: unknown
+    dbs: '*'
+    excludeDbs: []
+  postScripts: {}

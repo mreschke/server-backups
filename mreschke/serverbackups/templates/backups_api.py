@@ -16,16 +16,21 @@ log.init({
 defaults = {
     'enabled': True,
     'cluster': None,
+
+    # Keep all daily up to X days back, last snapshot in a week X weeks back, last snapshot in a month X months back...
     'prune': {
-        # Keep all daily up to X days back, last snapshot in a week X weeks back, last snapshot in a month X months back...
         'keepDaily': 30,
         'keepWeekly': 24,
-        'keepMonthly': 120,
+        'keepMonthly': 60,
         'keepYearly': 10,
     },
+
+    # Rsync options
     'rsync': {
         'verbose': True,
     },
+
+    # Source server connection details
     'source': {
         'location': 'local',  # local, ssh,
         'ssh': {
@@ -36,6 +41,8 @@ defaults = {
             'key': '~/.ssh/id_rsa',
         },
     },
+
+    # Destination server connection details
     'destination': {
         'location': 'local',  # local, ssh,
         'path': '/mnt/backups',
@@ -47,11 +54,14 @@ defaults = {
             'key': '~/.ssh/id_rsa',
         },
     },
+
+    # Backup items
     'backup': {
         # Pre scripts run on destination before this servers backups, a good place to prep files for backup
         'preScripts': {
             'gitlab': {'script': 'sudo gitlab-backup create', 'output': 'gitlab-backup.txt', 'enabled': False},
         },
+
         # Files to backup on the destination.  Use extra in your actual server definition for extra files.
         # Arrays are merged with defaults, so you could append to common and exclude as well
         'files': {
@@ -69,6 +79,8 @@ defaults = {
                 '.Trash-1000',
             ],
         },
+
+        # MySQL Databases and Tables
         'mysql': {
             'enabled': False,
             'mysqlCmd': 'mysql',
@@ -95,6 +107,7 @@ defaults = {
                 '#mysql50#lost+found',
             ],
         },
+
         # Post scripts run on destination after this servers backups, a good place to cleanup files
         'postScripts': {
             'dpkg': {'script': 'dpkg -l | gzip', 'output': 'dpkg.gz', 'enabled': False},
@@ -144,7 +157,7 @@ servers = {
 }
 
 # Initialize Backup Class
-# If you are defining servers in a dictionary above
+# If you are defining servers in a dictionary above, without a separate defaults
 #backups = Backups(servers=servers)
 
 # If you are defining both servers and defaults above

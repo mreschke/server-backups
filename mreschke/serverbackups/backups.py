@@ -22,7 +22,7 @@ class Backups:
         self.configd_path = None
         self.defaults_file = None
 
-        # Get defaults from parameter, serverbackup builtin, or config path defaults.yml
+        # Get defaults from parameter, or config path defaults.yml
         self.defaults = self.__get_defaults(servers, defaults, config_path)
 
         # Get servers from parameter or config path .d folder
@@ -48,20 +48,23 @@ class Backups:
                 BackupServer(server, options, self.defaults).run()
 
     def __get_defaults(self, servers, defaults, config_path):
-        """Get defaults from parameter, serverbackup builtin, or config path defaults.yml
+        """Get defaults from parameter, or config path defaults.yml
         """
         if servers and defaults:
             # Using passed in defaults
             return defaults
         elif servers and not defaults:
+            # No defaults, so everything is self-contained in servers
+            # But still need to create a blank defaults so our merge works properly
+
             # Using serverbackup builtint default.yml
-            file = os.path.dirname(os.path.realpath(__file__)) + '/templates/' + 'defaults.yml'
+            file = os.path.dirname(os.path.realpath(__file__)) + '/templates/' + 'defaults_blank.yml'
             default_config = ''
             with open(file, 'r') as stream:
                 default_config = yaml.safe_load(stream)
             return default_config
         else:
-            # Using config path
+            # No servers defined, using config path
             self.config_path = config_path
             self.configd_path = config_path + '/config.d'
             self.defaults_file = config_path + '/defaults.yml'
@@ -92,6 +95,7 @@ class Backups:
         """Properly merge or replace options with defaults"""
 
         # Ensure options has all keys
+        options.setdefault('cluster', '')
         options.setdefault('prune', {})
         options.setdefault('rsync', {})
         options.setdefault('source', {})

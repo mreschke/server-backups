@@ -21,7 +21,7 @@ defaults = {
         # Keep all daily up to X days back, last snapshot in a week X weeks back, last snapshot in a month X months back...
         'keepDaily': 30,
         'keepWeekly': 24,
-        'keepMonthly': 120,
+        'keepMonthly': 60,
         'keepYearly': 10,
     },
     'rsync': {

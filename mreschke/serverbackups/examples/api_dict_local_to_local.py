@@ -20,7 +20,7 @@ defaults = {
     'prune': {
         'keepDaily': 30,
         'keepWeekly': 24,
-        'keepMonthly': 120,
+        'keepMonthly': 60,
         'keepYearly': 10,
     },
     'rsync': {
@@ -89,7 +89,7 @@ defaults = {
 }
 
 # Define each server to backup (each will be merged with defaults config)
-servers = {
+serversX = {
     'sunmac.mreschke.net': {
         'enabled': True,
         'cluster': 'localhost',
@@ -131,14 +131,44 @@ servers = {
     },
 }
 
+
+
+
+# Define each server to backup (each will be merged with defaults config)
+servers = {
+    'sunmac.mreschke.net': {
+        'enabled': True,
+        'source': {
+            'location': 'local',
+        },
+        'destination': {
+            'location': 'local',
+            'path': '/Users/mreschke/Backups'
+        },
+        'backup': {
+            'files': {
+                'common': [
+                    '/etc/',
+                ],
+                'exclude': [
+                    'lost+found',
+                    '.Trash-1000',
+                ],
+            },
+        },
+    },
+}
+
+
+
 # Test by passing in servers, using builtin defaults
-#backups = Backups(servers=servers)
+backups = Backups(servers=servers)
 
 # Test by passing in servers and defaults
 #backups = Backups(servers=servers, defaults=defaults)
 
 # Test by using /etc/serverbackups
-backups = Backups()
+#backups = Backups()
 
 # Backups API Explorer
 # dump("DEFAULTS", backups.defaults)

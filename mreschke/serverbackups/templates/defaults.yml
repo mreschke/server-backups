@@ -6,7 +6,7 @@ cluster:
 prune:
   keepDaily: 30
   keepWeekly: 24
-  keepMonthly: 120
+  keepMonthly: 60
   keepYearly: 10
 
 # Rsync options
@@ -37,6 +37,7 @@ destination:
 # Backup items
 backup:
   # Pre scripts run on destination before this servers backups, a good place to prep files for backup
+  # If you want no preScripts by default, use preScripts: {}
   preScripts:
     gitlab: {script: 'sudo gitlab-backup create', output: 'gitlab-backup.txt', enabled: False}
 
@@ -44,6 +45,7 @@ backup:
   # Arrays are merged with defaults, so you could append to common and exclude as well
   files:
     # Common files for a linux distribution
+    # If you want no common, extra or exclude use, []
     common:
       - /etc/
       - /usr/local/bin/
@@ -81,6 +83,7 @@ backup:
     #       - table2
     #   - name: 'db2'
     #     tables: *
+    # If you want no excludeDbs by default, use excludeDbs: []
     excludeDbs:
       - information_schema
       - performance_schema
@@ -88,5 +91,6 @@ backup:
       - '#mysql50#lost+found'
 
   # Post scripts run on destination after this servers backups, a good place to cleanup files
+  # If you want no postScripts by default, use postScripts: {}
   postScripts:
     dpkg: {script: 'dpkg -l | gzip', output: 'dpkg.gz', enabled: False}

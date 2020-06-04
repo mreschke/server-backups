@@ -65,11 +65,20 @@ def example_api_module():
         print(f.read())
 
 
-@cli.command('show-defaults')
-def show_defaults():
-    """Show builtin default yaml
+@cli.command('example-defaults')
+def example_defaults():
+    """Example of a default.yml config
     """
     template = os.path.dirname(os.path.realpath(__file__)) + '/templates/' + 'defaults.yml'
+    with open(template, 'r') as f:
+        print(f.read())
+
+
+@cli.command('show-builtin-defaults')
+def show_defaults():
+    """Builtin sensible defaults applied when you dont
+    """
+    template = os.path.dirname(os.path.realpath(__file__)) + '/templates/' + 'defaults_blank.yml'
     with open(template, 'r') as f:
         print(f.read())
 
