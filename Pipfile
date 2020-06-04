@@ -2,6 +2,7 @@
 name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
+skip_lock = true
 
 [dev-packages]
 flake8 = "*"
@@ -10,4 +11,4 @@ mreschke_serverbackups = {editable = true,path = "."}
 [packages]
 
 [requires]
-python_version = "2.7"
+python_version = "3.5"
