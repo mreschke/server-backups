@@ -107,6 +107,19 @@ server definition less verbose.  Run `serverbackups show-defaults` to see the `d
 still being applied here.  For example you don't need to define the prune rates, ssh port or ssh key
 if the `defaults` are acceptable.
 
+Because of the `defaults` system, your actual server definitions can be much smaller.  For example, here
+is a minimal server definition that inherits from `defaults`
+
+In yaml format
+```yaml
+myloadbalancer:
+  source: {ssh: {host: haproxy.example.com}}
+  backup:
+    files:
+      exclude:
+        - /var/log/haproxy_info.log
+```
+
 
 ## Servers
 
@@ -270,6 +283,7 @@ defaults = {
         },
 
         # MySQL Databases and Tables
+        # Host and port are relative inside the server itself via ssh, not remote
         'mysql': {
             'enabled': False,
             'mysqlCmd': 'mysql',

@@ -82,6 +82,7 @@ defaults = {
         },
 
         # MySQL Databases and Tables
+        # Host and port are relative inside the server itself via ssh, not remote
         'mysql': {
             'enabled': False,
             'mysqlCmd': 'mysql',

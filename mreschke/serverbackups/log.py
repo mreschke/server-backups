@@ -173,7 +173,7 @@ class ColoredFormatter(Formatter):
             message = re.sub("^---- ", "", message)
             message = re.sub(" ----$", "", message)
             message = ('{0}{1}{2}{3}').format(fg('dark_orange'), attr('bold'), '---- ', attr(0)) \
-                + ('{0}{1}{2}').format(fg('dark_green'), message, attr(0)) \
+                + ('{0}{1}{2}').format(fg('green'), message, attr(0)) \
                 + ('{0}{1}{2}{3}').format(fg('dark_orange'), attr('bold'), ' ----', attr(0))
 
         # Format bullet * item

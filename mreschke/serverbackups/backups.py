@@ -99,6 +99,7 @@ class Backups:
         options.setdefault('prune', {})
         options.setdefault('rsync', {})
         options.setdefault('source', {})
+        options.setdefault('destination', {})
         options['source'].setdefault('ssh', {})
         options['destination'].setdefault('ssh', {})
         options.setdefault('backup', {})

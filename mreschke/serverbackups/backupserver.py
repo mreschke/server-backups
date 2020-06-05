@@ -104,16 +104,15 @@ class BackupServer:
         self.execute_dest("mkdir -p " + self.dest.snapshot_path)
 
     def backup_scripts(self, type, scripts):
-        """Backup the output of a script
+        """Execute script on DEST and optionally backup the output to snapshot folder
         """
         for script in scripts:
             if not script.enabled: continue
             log.header4("Running {} script '{}'".format(type.upper(), script.name))
-            if script.output:
-                log.bullet("Saving script output to '{}' to DEST snapshot".format(script.output))
-
             output = None
-            if script.output: output = self.dest.snapshot_path + '/' + script.output
+            if hasattr(script, 'output'):
+                log.bullet("Saving script output to '{}' to DEST snapshot".format(script.output))
+                output = self.dest.snapshot_path + '/' + script.output
             self.execute(cmd=script.script, outfile=output)
 
     def backup_files(self):
@@ -429,8 +428,8 @@ class BackupServer:
         elif src == 'ssh' and dest == 'local':
             # Execute script remotely, save output locally
             #ssh toor@linstore cat /etc/hosts > /snapshot/dir/hosts
-            cmd = self.ssh + " \"" + cmd + "\""
-            if outfile: outfile_cmd = self.ssh_string(src) + cmd + " >  " + str(outfile)
+            cmd = self.ssh_string('src') + " \"" + cmd + "\""
+            if outfile: outfile_cmd = cmd + " >  " + str(outfile)
 
         if dryrun:
             cmd = 'DRYRUN: ' + cmd
