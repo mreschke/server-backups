@@ -50,13 +50,6 @@ def start(backups):
     log.header3("Running server backups")
     log.separator()
 
-    if backups.servers:
-        # Passing in a dictionary of servers
-        log.bullet("Backups defined as inline dictionary")
-    else:
-        # Using config directory
-        log.bullet("Using config dir {}".format(backups.config_path))
-
     # Run a single server
     if '--server' in sys.argv:
         server = sys.argv[sys.argv.index("--server") + 1]
