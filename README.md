@@ -553,5 +553,5 @@ Keep the LAST/LATEST monthly backup.  This means the last backup on the 31st of 
 
 Keep the LAST/LATEST yearly backup.  This all 12/31 backups of each year will be saved.
 
-The default prune settings may seem like a wast of storage, but read my `Backup Strategy` notes above.  Using
+The default prune settings may seem like a waste of storage, but read my `Backup Strategy` notes above.  Using
 rsync hard-link style snapshots saves space by using unix hard links to deduplicate files efficiently.
