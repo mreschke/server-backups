@@ -1,5 +1,18 @@
 # server-backups
 
+# Build and Deploy
+
+* Make code changes
+* Edit `setup.py` and change the version number
+* Build with `./bin/build.sh` which creates a new tar.gs file with proper version in ./dist folder
+* Commit code to develop branch
+* Merge code into master branch
+* Tag code with new version
+* Deploy to PyPi by running `./bin/upload-pypi.sh`
+
+
+
+
 # Packaging
 Tutorial https://python-packaging.readthedocs.io/en/latest/minimal.html
 Example https://github.com/OneGov/onegov.search

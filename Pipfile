@@ -7,6 +7,7 @@ skip_lock = true
 [dev-packages]
 flake8 = "*"
 mreschke_serverbackups = {editable = true,path = "."}
+twine = "*"
 
 [packages]
 

@@ -92,7 +92,7 @@ without sacrificing storage.
 
 Most of the settings for a single server are redundant and can therefore be
 deduplicated in to what I call a `defaults` config.  The `defaults` config
-is `merged` with **each** server definition in your array.  This keep your server definition
+is `merged` with **each** server definition in your array.  This keeps your server definition
 small and clean.  `Defaults` and each of your server configs are deep merged which
 allows you to override small pieces of the `defaults` for each server as needed.
 
@@ -103,7 +103,7 @@ a 'defaults' definition.
 **NOTICE - Sensible Defaults Applied**
 
 If you do not define your own 'defaults', a sensible 'defaults' are still applied to keep even a single
-server definition less verbose.  Run `serverbackups show-defaults` to see the `defaults` that are
+server definition less verbose.  Run `serverbackups show-builtin-defaults` to see the `defaults` that are
 still being applied here.  For example you don't need to define the prune rates, ssh port or ssh key
 if the `defaults` are acceptable.
 
@@ -161,18 +161,18 @@ Both of which can either store the output of the command to the snapshot, or ign
 Serverbackups can run
 * `local -> local`,
 * `local -> remote` (push via SSH and rsync)
-* `remote -> local` (pull vis SSH and rsync)
+* `remote -> local` (pull via SSH and rsync)
 
 If you just want to backup your laptop to your server, probably the `local -> remote` is simplest.  If you
 use `serverbackups` in a corporate environment like I do you probably want a single backup server that
 **pulls** backups from all your servers and VMS.  Pulling has the advantage of not having to put your
 SSH keys on the backup server.  So all VMs cannot SSH into the backup server.  Pulling means the backup
-server needs access to all VMs but no the other way around.
+server needs access to all VMs but not the other way around.
 
 In my corporate environment I have a single backup server which has SSH access into the `root` account
 on every server and VM.  I use the file based `/etc/serverbackups` configuration.  Each server has
 a file in `/etc/serverbackups/config.d/someserver.yml`.  Using single files for each server helps
-manage the backups when you have hundreds of servers.
+manage the backups when you have hundreds of servers.  For best results, keep these backup files in ansible for revision control and easy deployments.
 
 
 # Examples
@@ -486,7 +486,7 @@ log.init({
 # in the server itself
 
 # NOTE sensible defaults are still applied to keep even a single server definition
-# less verbose.  Run `serverbackups show-defaults` to see the defaults that are
+# less verbose.  Run `serverbackups show-builtin-defaults` to see the defaults that are
 # still being applied here
 
 # Define each server to backup (each will be merged with defaults config)
