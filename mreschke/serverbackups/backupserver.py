@@ -238,8 +238,13 @@ class BackupServer:
             # --flush-logs Flush MySQL server log files before starting dump
             # --master-data Write the binary log file name and position to the output, good if this is part of a cluster
 
+            # Dump flags are optionaly even in defaults.  I only added because MariaDB 10.1 does NOT like flush-logs
+            flags = "--quick --single-transaction --flush-logs"
+            if hasattr(self.mysql, 'dumpFlags'):
+                flags = self.mysql.dumpFlags
+
             # Output is piped ON MySQL server to gzip before being sent over SSH!  Do not use the --compress option, that is only between client and server (which is localhost anyhow usually)
-            cmd = dump_cmd + " --user={} --password='{}' --host={} --port={} --quick --single-transaction --flush-logs {} {} | gzip".format(user, password, host, port, name, tables)
+            cmd = dump_cmd + " --user={} --password='{}' --host={} --port={} {} {} {} | gzip".format(user, password, host, port, flags, name, tables)
             self.execute(cmd=cmd, outfile=dest + '/' + name + ".sql.gz", skip_logging=True, dryrun=False)
 
     def cleanup(self):

@@ -87,6 +87,7 @@ defaults = {
             'mysqlCmd': 'mysql',
             #'mysqlCmd': 'docker exec -i mysql mysql',
             'dumpCmd': 'mysqldump',
+            'dumpFlags': '--quick --single-transaction --flush-logs',
             #'dumpCmd': 'docker exec -i mysql mysqldump',
             'host': '127.0.0.1',
             'port': 3306,
