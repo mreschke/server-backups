@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "mreschke-serverbackups"
+version = "1.0.4"
+license = "MIT"
+authors = ["Matthew Reschke <mail@mreschke.com>"]
+description = "Config driven server backups that feel like a simple backup.py script"
+readme = "README.md"
+homepage = "http://github.com/mreschke/server-backups"
+documentation = "http://github.com/mreschke/server-backups"
+repository = "http://github.com/mreschke/server-backups"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Topic :: System :: Archiving :: Backup",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Environment :: Console",
+]
+include = ["LICENSE"]
+packages = [
+    { include = "mreschke" },
+]
+
+[tool.poetry.dependencies]
+python = ">=3.5,<4.0"
+click = "7.1.*"
+colored = "1.4.*"
+prettyprinter = "0.18.*"
+PyYAML = "5.*"
+
+[tool.poetry.dev-dependencies]
+flake8 = "3.9.*"
+
+[tool.poetry.scripts]
+serverbackups = "mreschke.serverbackups.init:cli"
+
+[build-system]
+requires = ["poetry_core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

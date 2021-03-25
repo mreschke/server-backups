@@ -82,6 +82,9 @@ def show_defaults():
     with open(template, 'r') as f:
         print(f.read())
 
+def tt():
+    print('tt here')
+
 
 # Initiate cli
 if __name__ == '__main__':

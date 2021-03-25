@@ -28,6 +28,8 @@ Added to my php one
 Not added to PHP one
 * Ability to prune backups but keep first month, last months, first year, last of year, even first or last of week, like restic
 
+* Cluster should be an array.  Needed so I can still use cluster of linodes or webfarm, but also things like local vs usb
+
 
 
 # CLI API FIRST - What I Want
