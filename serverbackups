@@ -1,4 +1,0 @@
-#!/bin/bash
-
-# Poetry entrypoint
-poetry run serverbackups "$@"

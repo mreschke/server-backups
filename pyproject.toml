@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mreschke-serverbackups"
-version = "1.0.4"
+version = "1.0.5"
 license = "MIT"
 authors = ["Matthew Reschke <mail@mreschke.com>"]
 description = "Config driven server backups that feel like a simple backup.py script"
@@ -18,9 +18,13 @@ classifiers = [
     "Operating System :: Unix",
     "Environment :: Console",
 ]
+
+# Extra files to include in build
 include = ["LICENSE"]
+
+# This poetry package path
 packages = [
-    { include = "mreschke" },
+    { include = "mreschke/serverbackups" },
 ]
 
 [tool.poetry.dependencies]

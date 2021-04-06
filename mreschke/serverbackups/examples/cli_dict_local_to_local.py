@@ -19,10 +19,15 @@ defaults = {
     'cluster': None,
     'prune': {
         # Keep all daily up to X days back, last snapshot in a week X weeks back, last snapshot in a month X months back...
-        'keepDaily': 30,
-        'keepWeekly': 24,
-        'keepMonthly': 60,
-        'keepYearly': 10,
+        # 'keepDaily': 30,
+        # 'keepWeekly': 24,
+        # 'keepMonthly': 60,
+        # 'keepYearly': 10,
+
+        'keepDaily': 5,
+        'keepWeekly': 8,
+        'keepMonthly': 6,
+        'keepYearly': 1,
     },
     'rsync': {
         'verbose': True,
@@ -57,12 +62,12 @@ defaults = {
         # Arrays are merged with defaults, so you could append to common and exclude as well
         'files': {
             'common': [
-                '/etc/',
-                '/usr/local/bin/',
-                '/root/',
-                '/home/',
-                '/var/log/',
-                '/var/spool/cron/',
+                #'/etc/',
+                #'/usr/local/bin/',
+                #'/root/',
+                #'/home/',
+                #'/var/log/',
+                #'/var/spool/cron/',
             ],
             'extra': [],
             'exclude': [
@@ -114,16 +119,23 @@ servers = {
         },
         'destination': {
             'location': 'local',
-            'path': '/Users/mreschke/Backups'
+            #'path': '/Users/mreschke/Backups'  # Mac
+            'path': '/home/mreschke/Backups'  # Linux
         },
         'backup': {
             'preScripts': {
                 #'gitlab': {'enabled': True}
                 # Example of capturing script output to snapshot
-                'test2': {'script': 'ls -Hhal /etc/', 'output': 'etc.txt', 'enabled': True},
+                #'test2': {'script': 'ls -Hhal /etc/', 'output': 'etc.txt', 'enabled': True},
+            },
+
+            'files': {
+                'extra': [
+                    "/etc/profile.d/"
+                ],
             },
             'mysql': {
-                'enabled': True,
+                'enabled': False,
                 #'mysqlCmd': 'mysql',
                 'mysqlCmd': 'docker exec -i mysql mysql',
                 #'dumpCmd': 'mysqldump',
@@ -143,7 +155,7 @@ servers = {
 }
 
 # Run backups
-backups = Backups(servers=servers)
+backups = Backups(servers=servers, defaults=defaults)
 cli.start(backups)
 
 

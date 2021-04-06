@@ -1,7 +1,9 @@
 import os
+import sys
 import shutil
 import subprocess
 from datetime import date, datetime, timedelta
+import calendar
 from types import SimpleNamespace as obj
 
 from . import log
@@ -48,13 +50,17 @@ class BackupServer:
                 }))
         self.mysql = obj(**options['backup']['mysql'])
 
-        # Set other attributes
+        # Set today date and time
+        NOW = None
+        if os.getenv('NOW'): NOW = datetime.strptime(os.getenv('NOW'), "%Y-%m-%d %H:%M:%S.%f")
+
+        self.now_datetime = NOW or datetime.now()
+        #self.now_datetime = NOW or datetime.strptime('2018-02-15 08:15:27.243860', "%Y-%m-%d %H:%M:%S.%f")  # Fake today for testing only
+        self.now_date = self.now_datetime.date()
         self.src.server = server
         self.dest.server = self.src.server if self.dest.location == 'local' else self.dest.ssh.host
-        #self.dest.snapshot = datetime.today().strftime(options['snapshotDateFormat'])
-        self.dest.snapshot = datetime.today().strftime("%Y-%m-%d_%H%M%S")
+        self.dest.snapshot = self.now_datetime.strftime("%Y-%m-%d_%H%M%S")
         self.dest.snapshot_path = self.path('snapshots/' + self.dest.snapshot)
-        self.today = datetime.today().strftime("%Y%m%d")
 
     def run(self):
         """Run backups
@@ -278,18 +284,44 @@ class BackupServer:
         # Define snapshot date parser helper
         def dates(snapshot):
             # Snapshot date and snapshot time, and weekday
+            # Get snapshot dates (sd=date, st=time, wd=weekday 0-6)
+
+            # Snapshot date - datetime.date(2018, 1, 1)
             sd = date(int(snapshot[0:4]), int(snapshot[5:7]), int(snapshot[8:10]))
+
+            # Snapshot time - 8152 (thats 08152 as int)
             st = int(snapshot[11:-1])
-            wd = int(sd.strftime("%w"))  # 0=Sunday, 6=Saturday
-            return (sd, st, wd)
+
+            # Snapshot day of week - 0=Sunday, 6=Saturday
+            wd = int(sd.strftime("%w"))
+
+            # Last day of the snapshots week (Saturday)
+            ldw = sd + timedelta(days=6-wd)
+
+            # Last day of the snapshots month
+            ldm = date(sd.year, sd.month, calendar.monthrange(sd.year, sd.month)[1])
+
+            # Last day of the snapshots year
+            ldy = date(sd.year, 12, calendar.monthrange(sd.year, 12)[1])
+
+            # Return all dates
+            return (sd, st, wd, ldw, ldm, ldy)
 
         # Snapshot folder and start date
         snapshot_path = self.path('snapshots')
-        today = date.today()
+
+        # FAKER command line loop for testing only
+        # for i in {1..31}; do NOW="2017-12-$i 08:15:27.243860" ./cli_dict_local_to_local.py run --all > /dev/null && dir ~/Backups/myserver.example.com/snapshots; done
+        # for i in {1..31}; do NOW="2018-01-$i 08:15:27.243860" ./cli_dict_local_to_local.py run --all > /dev/null && dir ~/Backups/myserver.example.com/snapshots; done
+        # for i in {1..28}; do NOW="2018-02-$i 08:15:27.243860" ./cli_dict_local_to_local.py run --all > /dev/null && dir ~/Backups/myserver.example.com/snapshots; done
+        # for i in {1..31}; do NOW="2018-03-$i 08:15:27.243860" ./cli_dict_local_to_local.py run --all > /dev/null && dir ~/Backups/myserver.example.com/snapshots; done
+        # for i in {1..30}; do NOW="2018-04-$i 08:15:27.243860" ./cli_dict_local_to_local.py run --all > /dev/null && dir ~/Backups/myserver.example.com/snapshots; done
+        # for i in {1..31}; do NOW="2018-05-$i 08:15:27.243860" ./cli_dict_local_to_local.py run --all > /dev/null && dir ~/Backups/myserver.example.com/snapshots; done
+        # for i in {1..30}; do NOW="2018-06-$i 08:15:27.243860" ./cli_dict_local_to_local.py run --all > /dev/null && dir ~/Backups/myserver.example.com/snapshots; done
 
         # FAKER DATA for Testing Only
-        # start = date(2009, 1, 1)
-        # while start < today:
+        # start = date(2019, 1, 1)
+        # while start < self.now_date:
         #     start += timedelta(days=1)
         #     snapshot = snapshot_path + '/' + start.strftime("%Y-%m-%d_010101")
         #     if not os.path.exists(snapshot): os.mkdir(snapshot)
@@ -300,95 +332,52 @@ class BackupServer:
         snapshots = sorted(self.execute_dest("/bin/ls " + snapshot_path))
         if len(snapshots) == 0: return
 
-        # Find days to keep
-        # Keeps multiple of the same day back to keepDaily
-        keep_daily = []
+        ######################################################################## Yearly
+        keep_yearly = []
         for i, snapshot in enumerate(snapshots):
-            # Get snapshot date and time
-            sd, st, wd = dates(snapshot)
-
-            days_back = today - timedelta(days=self.prune.keepDaily)
-            if sd >= days_back:
-                keep_daily.append(snapshot)
-
-        # Remove keep_daily from snapshots
-        snapshots = [x for x in snapshots if x not in keep_daily]
+            # Get snapshot dates (sd=date, st=time, wd=weekday 0-6, ldw=date of next sunday, ldm=date of last of month, ldy=date of last of year)
+            sd, st, wd, ldw, ldm, ldy = dates(snapshot)
+            if sd == ldy:
+                # Snapshot is the last date of the year
+                keep_yearly.append(snapshot)
+        keep_yearly = keep_yearly[-self.prune.keepYearly:]
+        snapshots = [x for x in snapshots if x not in keep_yearly]
         if len(snapshots) == 0: return
 
-        # Get list of only latest snapshot of each day
-        # Remove any snapshots of the SAME day that are earlier in the day, keeping the latest of each day
-        add = ''
-        current = dates(snapshots[0])[0]  # date
-        latest_days = []
+        ######################################################################## Monthly
+        keep_monthly = []
         for i, snapshot in enumerate(snapshots):
-            # Get snapshot date and time
-            sd, st, wd = dates(snapshot)
-
-            if sd != current:
-                latest_days.append(add)
-            add = snapshot
-            current = sd
-        latest_days.append(snapshots[-1])
-        snapshots = latest_days
-
-        # Get list of only latest snapshots of each week
-        add = ''
-        current = dates(snapshots[0])[2]  # week day
-        latest_weeks = []
-        for i, snapshot in enumerate(snapshots):
-            # Get snapshot date and time
-            sd, st, wd = dates(snapshot)
-
-            if wd < current:
-                latest_weeks.append(add)
-            add = snapshot
-            current = wd
-
-        # Take top latest weekly snapshots according to self.prune.keepWeekly
-        keep_weekly = latest_weeks[-self.prune.keepWeekly:]
-
-        # Remove keep_weekly from snapshots
-        snapshots = [x for x in snapshots if x not in keep_weekly]
-        if len(snapshots) == 0: return
-
-        # Get list of only latest snapshots of each month
-        add = ''
-        current = dates(snapshots[0])[0].day
-        latest_months = []
-        for i, snapshot in enumerate(snapshots):
-            # Get snapshot date and time
-            sd, st, wd = dates(snapshot)
-
-            if sd.day < current:
-                latest_months.append(add)
-            add = snapshot
-            current = sd.day
-
-        # Take top latest monthly snapshots according to self.prune.keepMonthly
-        keep_monthly = latest_months[-self.prune.keepMonthly:]
-
-        # Remove keep_monthly from snapshots
+            # Get snapshot dates (sd=date, st=time, wd=weekday 0-6, ldw=date of next sunday, ldm=date of last of month, ldy=date of last of year)
+            sd, st, wd, ldw, ldm, ldy = dates(snapshot)
+            if sd == ldm:
+                # Snapshot is the last date of the month
+                keep_monthly.append(snapshot)
+        keep_monthly = keep_monthly[-self.prune.keepMonthly:]
         snapshots = [x for x in snapshots if x not in keep_monthly]
         if len(snapshots) == 0: return
 
-        # Get list of only latest snapshots of each year
-        add = ''
-        current = dates(snapshots[0])[0].month
-        latest_years = []
+        ######################################################################## Weekly
+        keep_weekly = []
         for i, snapshot in enumerate(snapshots):
-            # Get snapshot date and time
-            sd, st, wd = dates(snapshot)
+            # Get snapshot dates (sd=date, st=time, wd=weekday 0-6, ldw=date of next sunday, ldm=date of last of month, ldy=date of last of year)
+            sd, st, wd, ldw, ldm, ldy = dates(snapshot)
+            if sd == ldw:
+                # Snapshot is the last date of the month
+                keep_weekly.append(snapshot)
+        keep_weekly = keep_weekly[-self.prune.keepWeekly:]
+        snapshots = [x for x in snapshots if x not in keep_weekly]
+        if len(snapshots) == 0: return
 
-            if sd.month < current:
-                latest_years.append(add)
-            add = snapshot
-            current = sd.month
-
-        # Take top latest yearly snapshots according to self.prune.keepYearly
-        keep_yearly = latest_years[-self.prune.keepYearly:]
-
-        # Remove keep_monthly from snapshots
-        snapshots = [x for x in snapshots if x not in keep_yearly]
+        ######################################################################## Daily
+        # Keeps multiple of the same day back to keepDaily
+        keep_daily = []
+        for i, snapshot in enumerate(snapshots):
+            # Get snapshot dates (sd=date, st=time, wd=weekday 0-6, ldw=date of next sunday, ldm=date of last of month, ldy=date of last of year)
+            sd, st, wd, ldw, ldm, ldy = dates(snapshot)
+            days_back = self.now_date - timedelta(days=self.prune.keepDaily)
+            if sd > days_back:
+                keep_daily.append(snapshot)
+        snapshots = [x for x in snapshots if x not in keep_daily]
         if len(snapshots) == 0: return
 
         # Now we have a perfect set of snapshots to keep
