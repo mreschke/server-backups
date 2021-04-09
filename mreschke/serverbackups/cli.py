@@ -1,6 +1,7 @@
 import sys
 
 import click
+import subprocess
 
 from . import log
 from .utils import dd, dump
@@ -128,6 +129,16 @@ def allowcustom():
     """Helper for backups.py to determine if custom backup code should be run
     """
     return any(x in ['--custom', '--all'] for x in sys.argv)
+
+
+def kill_if_running(script):
+    # Kill myself if already running
+    procs = subprocess.Popen(['ps', 'aux'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+    found = 0
+    for line in procs.stdout:
+        if script in line: found += 1
+    if found > 1:
+        log.error('Backups already running.  Exiting')
 
 
 # Explicit exports
