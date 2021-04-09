@@ -2,9 +2,6 @@
 from datetime import date
 from mreschke.serverbackups import Backups, cli, log
 
-# Kill myself if already running
-cli.kill_if_running(__file__)
-
 # Configure logger
 log.init({
     'console': {
@@ -15,6 +12,9 @@ log.init({
         'file': '/tmp/backups-{}.log'.format(date.today().strftime('%Y-%m-%d')),
     }
 })
+
+# Kill myself if already running
+cli.kill_if_running(__file__)
 
 # Set per server defaults.  Each server can override parts of this default.
 defaults = {

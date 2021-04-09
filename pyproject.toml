@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mreschke-serverbackups"
-version = "1.0.6"
+version = "1.0.7"
 license = "MIT"
 authors = ["Matthew Reschke <mail@mreschke.com>"]
 description = "Config driven server backups that feel like a simple backup.py script"

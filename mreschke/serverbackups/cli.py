@@ -139,6 +139,7 @@ def kill_if_running(script):
         if script in line: found += 1
     if found > 1:
         log.error('Backups already running.  Exiting')
+        exit()
 
 
 # Explicit exports
